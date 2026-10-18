@@ -1,0 +1,81 @@
+# =========================
+# Python / FastAPI backend
+# =========================
+**/__pycache__/
+**/*.py[cod]
+*$py.class
+**/.Python
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.tox/
+**/.nox/
+**/htmlcov/
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+**/pip-wheel-metadata/
+
+# Python virtual environments
+**/.venv/
+**/venv/
+**/env/
+**/ENV/
+**/virtualenv/
+
+# Local environment variables and secrets
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+
+# Logs and temporary files
+**/*.log
+**/*.tmp
+**/*.temp
+**/~*
+
+# =========================
+# Next.js / Node frontend
+# =========================
+**/node_modules/
+**/.next/
+**/out/
+**/build/
+**/dist/
+**/coverage/
+**/.turbo/
+**/.vercel/
+**/*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# =========================
+# Generated test and runtime output
+# =========================
+# Keep test_images/ tracked unless you intentionally want to exclude
+# your local test photos. Ignore generated predictions/output only.
+backend/test_outputs/
+backend/runs/
+backend/results/
+backend/*.log
+
+# =========================
+# Dataset archives and generated caches
+# =========================
+**/dataset/
+**/*dataset*.zip
+**/archive.zip
+**/*.cache
+
+# =========================
+# Operating system / editor files
+# =========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
