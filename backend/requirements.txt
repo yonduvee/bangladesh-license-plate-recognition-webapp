@@ -1,0 +1,7 @@
+﻿fastapi==0.143.2
+uvicorn[standard]
+python-multipart==0.0.32
+ultralytics==8.4.180
+opencv-python-headless
+numpy
+pillow
