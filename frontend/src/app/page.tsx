@@ -34,7 +34,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 const navigation = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "recognition", label: "Plate Recognition", icon: ScanLine },
   { id: "history", label: "History", icon: Clock3 },
   { id: "about", label: "About Project", icon: Info },
 ] as const;
