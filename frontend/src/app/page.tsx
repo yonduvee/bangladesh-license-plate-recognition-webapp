@@ -34,6 +34,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 const navigation = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "recognition", label: "Plate Recognition", icon: ScanLine },
   { id: "history", label: "History", icon: Clock3 },
   { id: "about", label: "About Project", icon: Info },
 ] as const;
@@ -373,9 +374,17 @@ export default function Home() {
         onClick={handleRecognize}
       >
         <ScanLine size={19} />
-        {loading ? "Recognizing Plate..." : "Recognize License Plate"}
+        {loading ? "Analyzing Image..." : "Recognize License Plate"}
         <ArrowRight size={18} />
       </button>
+      <div className="processing-notice" role="status" aria-live="polite">
+        <Info size={17} />
+        <p>
+          {loading
+            ? "Analyzing your image. This may take 1–2 minutes. Please keep this page open."
+            : "Recognition may take 1–2 minutes due to limited computing resources on our free cloud server."}
+        </p>
+      </div>
     </div>
   );
 

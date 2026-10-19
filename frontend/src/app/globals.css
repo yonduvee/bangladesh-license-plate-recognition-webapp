@@ -931,3 +931,27 @@ button:disabled {
 .history-plate-details p { line-height: 1.65; }
 .history-privacy { color: var(--muted); font-size: 12px; line-height: 1.7; margin-top: 14px; }
 @media (max-width: 760px) { .history-summary { align-items: stretch; } .history-thumbnail { width: 100%; height: 180px; } .history-actions { width: 100%; } }
+
+.processing-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 13px 15px;
+  border: 1px solid #294566;
+  border-radius: 9px;
+  background: #101e35;
+  color: #a9c4e8;
+}
+
+.processing-notice svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #75a7f8;
+}
+
+.processing-notice p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.7;
+}
