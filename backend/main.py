@@ -85,7 +85,7 @@ def recognize_characters(plate_crop):
         iou=0.7,
         imgsz=640,
         agnostic_nms=True,
-        verbose=False,
+        verbose=True,
     )[0]
 
     if result.boxes is None or len(result.boxes) == 0:
@@ -198,7 +198,7 @@ async def recognize(file: UploadFile = File(...)):
         conf=0.25,
         iou=0.5,
         imgsz=640,
-        verbose=False,
+        verbose=True,
     )[0]
 
     if localization_result.boxes is None or len(localization_result.boxes) == 0:
