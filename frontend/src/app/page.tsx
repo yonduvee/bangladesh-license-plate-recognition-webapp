@@ -34,7 +34,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 const navigation = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "recognition", label: "Plate Recognition", icon: ScanLine },
   { id: "history", label: "History", icon: Clock3 },
   { id: "about", label: "About Project", icon: Info },
 ] as const;
@@ -354,7 +353,31 @@ export default function Home() {
             <ImagePlus size={17} />
             Browse Files
           </button>
-          <span className="upload-hint">Maximum file size: 10 MB</span>
+          <div
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "12px",
+    marginTop: "18px",
+  }}
+>
+  <span className="upload-hint" style={{ marginTop: 0 }}>
+    Maximum file size: 10 MB
+  </span>
+
+  <a
+    href="https://drive.google.com/drive/folders/1Iq5w2R6RoajZgF5obn0UBd1vVLxbT6RT?usp=drive_link"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="secondary-button"
+    style={{ textDecoration: "none" }}
+  >
+    <FileImage size={17} />
+    View Sample Images
+    <ArrowRight size={16} />
+  </a>
+</div>
         </div>
       )}
 
