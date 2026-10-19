@@ -49,7 +49,7 @@ type ApiResult = {
   detected_plates: DetectedPlate[];
 };
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
 const navigation = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
