@@ -1,13 +1,16 @@
 ﻿
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import {
   Activity,
   ArrowRight,
   CheckCircle2,
   Clock3,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
   Copy,
   FileImage,
   ImagePlus,
@@ -20,34 +23,12 @@ import {
   X,
 } from "lucide-react";
 
+import { deleteHistory, getHistory, saveHistory } from "./history-db";
+import type { ApiResult, HistoryRecord } from "./history-db";
+
 type Page = "dashboard" | "recognition" | "history" | "about";
 
-type CharacterDetection = {
-  label: string;
-  character: string;
-  confidence: number;
-  x: number;
-  y: number;
-  row: string;
-};
-
-type DetectedPlate = {
-  plate_confidence: number;
-  plate_bbox: number[];
-  recognized_text: string;
-  top_line: string;
-  bottom_line: string;
-  character_detections: CharacterDetection[];
-};
-
-type ApiResult = {
-  status: string;
-  filename: string;
-  file_size: number;
-  model_loaded: boolean;
-  message: string;
-  detected_plates: DetectedPlate[];
-};
+type DisplayHistory = HistoryRecord & { imageUrl: string };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000";
 
@@ -74,6 +55,45 @@ export default function Home() {
   const [apiResult, setApiResult] = useState<ApiResult | null>(null);
   const [copied, setCopied] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const [historyRecords, setHistoryRecords] = useState<DisplayHistory[]>([]);
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+  const [historyError, setHistoryError] = useState("");
+  const [expandedHistory, setExpandedHistory] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (page !== "history") return;
+    let cancelled = false;
+    let urls: string[] = [];
+    getHistory()
+      .then((records) => {
+        if (cancelled) return;
+        const entries = records.map((record) => ({
+          ...record,
+          imageUrl: URL.createObjectURL(record.image),
+        }));
+        urls = entries.map((entry) => entry.imageUrl);
+        setHistoryRecords(entries);
+        setHistoryError("");
+      })
+      .catch(() => {
+        if (!cancelled) setHistoryError("Unable to load browser history. Check browser storage permissions.");
+      });
+    return () => {
+      cancelled = true;
+      urls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [page, historyRefresh]);
+
+  const removeHistoryRecord = async (id: string) => {
+    if (!window.confirm("Delete this saved detection from this browser?")) return;
+    try {
+      await deleteHistory(id);
+      setExpandedHistory(null);
+      setHistoryRefresh((value) => value + 1);
+    } catch {
+      setHistoryError("Could not delete the record. Please try again.");
+    }
+  };
 
   const firstPlate = apiResult?.detected_plates?.[0] ?? null;
   const previewWidth =
@@ -149,6 +169,13 @@ export default function Home() {
       );
 
       setApiResult(response.data);
+      if (response.data.status === "success" && response.data.detected_plates.length > 0) {
+        try {
+          await saveHistory(selectedFile, response.data);
+        } catch {
+          setHistoryError("Recognition worked, but the browser could not save this image to history.");
+        }
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError<{ detail?: string }>(err)) {
         setError(
@@ -668,28 +695,70 @@ export default function Home() {
               <div className="page-intro">
                 <span className="eyebrow">ACTIVITY</span>
                 <h1>Recognition History</h1>
-                <p>Review previously processed vehicle license plates.</p>
+                <p>Images and results are stored privately in this browser, not on a cloud database.</p>
               </div>
-
+              {historyError && <p className="error-message">{historyError}</p>}
               <div className="panel standalone-panel">
-                <div className="empty-results">
-                  <div className="result-placeholder">
-                    <Clock3 size={36} />
+                {historyRecords.length === 0 ? (
+                  <div className="empty-results">
+                    <div className="result-placeholder"><Clock3 size={36} /></div>
+                    <h3>No saved history</h3>
+                    <p>Successfully recognized plates will appear here automatically on this device.</p>
+                    <button className="secondary-button" onClick={() => changePage("recognition")}>
+                      Start Recognition <ArrowRight size={17} />
+                    </button>
                   </div>
-                  <h3>No saved history</h3>
-                  <p>
-                    Recognition history will be available after database
-                    integration.
-                  </p>
-                  <button
-                    className="secondary-button"
-                    onClick={() => changePage("recognition")}
-                  >
-                    Start Recognition
-                    <ArrowRight size={17} />
-                  </button>
-                </div>
+                ) : (
+                  <div className="history-list">
+                    {historyRecords.map((record) => {
+                      const plate = record.result.detected_plates[0];
+                      const expanded = expandedHistory === record.id;
+                      return (
+                        <article className="history-record" key={record.id}>
+                          <div className="history-summary">
+                            <img className="history-thumbnail" src={record.imageUrl} alt="Previously uploaded vehicle" />
+                            <div className="history-meta">
+                              <strong>{plate?.recognized_text || "Plate detected"}</strong>
+                              <span>{new Date(record.createdAt).toLocaleString()}</span>
+                              <span>{record.filename}</span>
+                              <span>Confidence: {plate ? (plate.plate_confidence * 100).toFixed(2) : "—"}%</span>
+                              <span>{record.result.detected_plates.length} plate(s)</span>
+                            </div>
+                            <div className="history-actions">
+                              <button className="secondary-button" onClick={() => setExpandedHistory(expanded ? null : record.id)}>
+                                {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                {expanded ? "Hide" : "Details"}
+                              </button>
+                              <button className="secondary-button history-delete" onClick={() => void removeHistoryRecord(record.id)}>
+                                <Trash2 size={16} /> Delete
+                              </button>
+                            </div>
+                          </div>
+                          {expanded && (
+                            <div className="history-details">
+                              <img className="history-full-image" src={record.imageUrl} alt="Full uploaded vehicle" />
+                              {record.result.detected_plates.map((item, index) => (
+                                <div key={index} className="history-plate-details">
+                                  <h3>Plate {index + 1}: {item.recognized_text}</h3>
+                                  <p>Upper line: {item.top_line || "—"}</p>
+                                  <p>Lower line: {item.bottom_line || "—"}</p>
+                                  <p>Localization confidence: {(item.plate_confidence * 100).toFixed(2)}%</p>
+                                  <p>Bounding box: {item.plate_bbox.join(", ")}</p>
+                                  <strong>Characters</strong>
+                                  {item.character_detections.map((character, characterIndex) => (
+                                    <p key={characterIndex}>{character.character} ({character.label}) — {(character.confidence * 100).toFixed(2)}% · {character.row}</p>
+                                  ))}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
+              <p className="history-privacy">History is saved only in this browser. Clearing site data or using another browser/device may remove or hide it.</p>
             </div>
           )}
 
