@@ -1,5 +1,7 @@
+
 from pathlib import Path
 import os
+import torch
 import cv2
 import numpy as np
 from fastapi import FastAPI, File, HTTPException, UploadFile
@@ -163,6 +165,26 @@ def health():
         "model_loaded": True,
         "localization_classes": localization_model.names,
         "character_classes": character_model.names,
+    }
+
+
+@app.get("/api/system-info")
+def system_info():
+    cpu_quota = "unavailable"
+
+    try:
+        with open("/sys/fs/cgroup/cpu.max", "r") as f:
+            cpu_quota = f.read().strip()
+    except OSError:
+        pass
+
+    return {
+        "cpu_count": os.cpu_count(),
+        "torch_threads": torch.get_num_threads(),
+        "torch_interop_threads": torch.get_num_interop_threads(),
+        "cpu_quota": cpu_quota,
+        "torch_version": torch.__version__,
+        "cuda_available": torch.cuda.is_available(),
     }
 
 
